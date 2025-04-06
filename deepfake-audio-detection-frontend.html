@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioGuard | Deepfake Audio Detection</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .logo-icon {
+            background-color: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        .hero {
+            display: flex;
+            align-items: center;
+            padding: 5rem 0;
+        }
+        
+        .hero-content {
+            flex: 1;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: #4b5563;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .features {
+            padding: 5rem 0;
+            background-color: white;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-header h2 {
+            font-size: 2.25rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .section-header p {
+            font-size: 1.125rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+        }
+        
+        .detector {
+            padding: 5rem 0;
+        }
+        
+        .detector-content {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+        
+        .tab {
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .upload-area p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result {
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result-card {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        
+        .result-icon.real {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .result-icon.fake {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .result-title.real {
+            color: var(--secondary);
+        }
+        
+        .result-title.fake {
+            color: var(--danger);
+        }
+        
+        .confidence {
+            margin-top: 1.5rem;
+        }
+        
+        .confidence-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .confidence-level {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+        
+        .confidence-level.real {
+            background-color: var(--secondary);
+        }
+        
+        .confidence-level.fake {
+            background-color: var(--danger);
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .waveform {
+            margin-top: 2rem;
+            height: 100px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .how-it-works {
+            padding: 5rem 0;
+            background-color: #f9fafb;
+        }
+        
+        .process-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            position: relative;
+        }
+        
+        .process-steps::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+        
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .step-description {
+            color: #6b7280;
+            max-width: 250px;
+            margin: 0 auto;
+            font-size: 0.875rem;
+        }
+        
+        .cta {
+            padding: 5rem 0;
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-light {
+            background-color: white;
+            color: var(--primary);
+        }
+        
+        .btn-light:hover {
+            background-color: #f3f4f6;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 3rem 0;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .footer-brand p {
+            margin-top: 1rem;
+            color: #d1d5db;
+        }
+        
+        .footer-links h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-links a {
+            color: #d1d5db;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #374151;
+            text-align: center;
+            color: #9ca3af;
+        }
+        
+        /* Audio Player */
+        .audio-player {
+            margin-bottom: 2rem;
+        }
+        
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .audio-timeline {
+            flex: 1;
+            height: 4px;
+            background-color: #e5e7eb;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .audio-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .time-display {
+            font-size: 0.875rem;
+            color: #6b7280;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-image {
+                margin-top: 2rem;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .process-steps {
+                flex-direction: column;
+                gap: 3rem;
+            }
+            
+            .process-steps::before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="22"></line>
+                    </svg>
+                </div>
+                AudioGuard
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#detector">Detector</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#" class="btn btn-primary">Try It Now</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Detect Deepfake Audio with Advanced AI</h1>
+                <p>Protect yourself from audio manipulation with our state-of-the-art deepfake detection technology. AudioGuard uses machine learning to identify synthetic voices with over 98% accuracy.</p>
+                <a href="#detector" class="btn btn-primary">Try It Now</a>
+            </div>
+            <div class="hero-image">
+                <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="300" height="200" rx="10" fill="#f3f4f6"/>
+                    <path d="M100 150 C120 100, 140 180, 160 150 C180 120, 200 180, 220 150 C240 120, 260 180, 280 150 C300 120, 320 180, 340 150" stroke="#4f46e5" stroke-width="3" fill="none"/>
+                    <circle cx="220" cy="150" r="50" fill="rgba(79, 70, 229, 0.1)" stroke="#4f46e5" stroke-width="2"/>
+                    <path d="M220 120 L220 180 M205 140 L205 160 M235 140 L235 160" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+    
+    <section id="detector" class="detector">
+        <div class="container">
+            <div class="section-header">
+                <h2>Deepfake Audio Detector</h2>
+                <p>Upload an audio file or provide a URL to analyze for potential deepfake manipulation.</p>
+            </div>
+            <div class="detector-content">
+                <div class="tabs">
+                    <div class="tab active" data-tab="upload">Upload File</div>
+                    <div class="tab" data-tab="url">URL</div>
+                    <div class="tab" data-tab="record">Record Audio</div>
+                </div>
+                
+                <div class="tab-content active" id="upload-tab">
+                    <div class="upload-area" id="dropzone">
+                        <div class="upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h3>Drag & Drop Audio File</h3>
+                        <p>or click to browse your files</p>
+                        <input type="file" id="file-input" class="file-input" accept="audio/*">
+                        <button class="btn btn-primary">Select File</button>
+                    </div>
+                    
+                    <div class="audio-player">
+                        <div class="audio-controls">
+                            <button class="play-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                            </button>
+                            <div class="audio-timeline">
+                                <div class="audio-progress" style="width: 0%"></div>
+                            </div>
+                            <div class="time-display">0:00 / 0:00</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width: 100%;">Analyze Audio</button>
+                </div>
+                
+                <div class="tab-content" id="url-tab">
+                    <input type="text" class="url-input" placeholder="Enter audio URL...">
+                    <button class="btn btn-primary" style="width: 100%;">Analyze Audio</button>
+                </div>
+                
+                <div class="tab-content" id="record-tab">
+                    <div style="text-align: center; padding: 3rem;">
+                        <button class="btn btn-primary">Start Recording</button>
+                        <p style="margin-top: 1rem; color: #6b7280;">Recording time: 0:00</p>
+                    </div>
+                </div>
+                
+                <div class="result">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="result-icon fake">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div class="result-title fake">Likely Deepfake Audio</div>
+                        </div>
+                        
+                        <p>Our analysis indicates this audio has a high probability of being synthetically generated or manipulated.</p>
+                        
+                        <div class="confidence">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Confidence Level</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-level fake" style="width: 92%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="metric-title">Pitch Consistency</div>
+                                <div class="metric-value">76%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Harmonic Patterns</div>
+                                <div class="metric-value">Low</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-title">Spectral Analysis</div>
+                                <div class="metric-value">Abnormal</div>
+                            </div>
+                        </div>
+                        
+                        <div class="waveform">
+                            <svg width="100%" height="100%" viewBox="0 0 800 100" preserveAspectRatio="none">
+                                <path d="M0,50 C20,30 40,70 60,50 C80,30 100,70 120,50 C140,30 160,70 180,50 C200,30 220,70 240,50 C260,30 280,70 300,50 C320,30 340,70 360,50 C380,30 400,70 420,50 C440,30 460,70 480,50 C500,30 520,70 540,50 C560,30 580,70 600,50 C620,30 640,70 660,50 C680,30 700,70 720,50 C740,30 760,70 780,50 L800,50 L800,100 L0,100 Z" fill="#ef444433"/>
+                                <path d="M0,50 C20,30 40,70 60,50 C80,30 100,70 120,50 C140,30 160,70 180,50 C200,30 220,70 240,50 C260,30 280,70 300,50 C320,30 340,70 360,50 C380,30 400,70 420,50 C440,30 460,70 480,50 C500,30 520,70 540,50 C560,30 580,70 600,50 C620,30 640,70 660,50 C680,30 700,70 720,50 C740,30 760,70 780,50" stroke="#ef4444" stroke-width="2" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Advanced Detection Features</h2>
+                <p>Our AI model utilizes multiple analytical techniques to identify synthetic audio with high accuracy.</p>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12h6"></path>
+                            <path d="M22 12h-6"></path>
+                            <path d="M12 2v6"></path>
+                            <path d="M12 22v-6"></path>
+                            <path d="M20 16l-4-4 4-4"></path>
+                            <path d="M4 8l4 4-4 4"></path>
+                            <path d="M16 4l-4 4-4-4"></path>
+                            <path d="M8 20l4-4 4 4"></path>
+                        </svg>
+                    </div>
+                    <h3>Spectral Analysis</h3>
+                    <p>Detect unnatural patterns in audio frequency spectrums that are typical signatures of AI-generated content.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v8"></path>
+                            <path d="m4.93 10.93 1.41 1.41"></path>
+                            <path d="M2 18h2"></path>
+                            <path d="M20 18h2"></path>
+                            <path d="m19.07 10.93-1.41 1.41"></path>
+                            <path d="M22 22H2"></path>
+                            <path d="m8 22 4-10 4 10"></path>
+                        </svg>
+                    </div>
+                    <h3>Phoneme Boundary Detection</h3>
+                    <p>Identify inconsistent transitions between speech sounds that often occur in synthetic voice generation.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 2v20"></path>
+                            <path d="M2 12h20"></path>
+                            <path d="m6 8 4 4"></path>
+                            <path d="m10 8-4 4"></path>
+                            <path d="m14 8 4 4"></path>
+                            <path d="m18 8-4 4"></path>
+                            <path d="m6 16 4 4"></path>
+                            <path d="m10 16-4 4"></path>
+                            <path d="m14 16 4 4"></path>
+                            <path d="m18 16-4 4"></path>
+                        </svg>
+                    </div>
+                    <h3>Breathing Pattern Analysis</h3>
+                    <p>Analyze natural breathing rhythms that are often missing
